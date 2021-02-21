@@ -3,21 +3,18 @@ from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_login import LoginManager
 from fastapi_login.exceptions import InvalidCredentialsException
-from fastapi.templating import Jinja2Templates
 import os
-
+from dotenv import load_dotenv
+import rootpath
 
 routes = APIRouter()
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SECRET = "secret-key"
-pth = os.path.dirname(BASE_DIR)
-templates = Jinja2Templates(directory=os.path.join(pth, "templates"))
-
-
+load_dotenv(os.path.join(rootpath.detect(), ".env"))
+# SECRET = os.environ["SECRET_KEY"]
+SECRET = "your-secret-key"
 manager = LoginManager(SECRET, tokenUrl="/auth/login", use_cookie=True)
-manager.cookie_name = "some-name"
+manager.cookie_name = "post-it"
 
-DB = {"username": {"password": "qwertyuiop"}}
+DB = {"paris": {"password": "tomas"}}
 
 
 @manager.user_loader
@@ -36,7 +33,7 @@ def login(data: OAuth2PasswordRequestForm = Depends()):
     elif password != user['password']:
         raise InvalidCredentialsException
     access_token = manager.create_access_token(
-        data={"sub": username}
+        data=dict(sub=username)
     )
     resp = RedirectResponse(url="/private", status_code=status.HTTP_302_FOUND)
     manager.set_cookie(resp, access_token)
@@ -44,5 +41,5 @@ def login(data: OAuth2PasswordRequestForm = Depends()):
 
 
 @routes.get("/private")
-def getPrivateendpoint(_=Depends(manager)):
-    return "You are an authentciated user"
+def getPrivateendpoint(user=Depends(manager)):
+    return {'user': user}

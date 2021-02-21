@@ -1,11 +1,20 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from fastapi_login import LoginManager
 from fastapi_sqlalchemy import db
-
+from dotenv import load_dotenv
+import os
 
 from models.post_it import Post_it as ModelPostIt
 from src.schemas.schemas_post_it import PostIt
 
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+pth = os.path.dirname(BASE_DIR)
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+SECRET = os.environ["SQLALCHEMY_DATABASE_URI"]
+
 routes = APIRouter()
+# manager = LoginManager(SECRET, tokenUrl='/auth/token')
 
 
 @routes.post("/create_post", response_model=PostIt)
